@@ -3,7 +3,7 @@ const router = express.Router();
 const { body, param, query } = require('express-validator');
 const PostController = require('../controllers/PostController');
 const topics = require('../types').topics;
-const {validation} = require('../utils/validationMiddleware');
+const { validation } = require('../utils/validationMiddleware');
 
 const postBody = [
     body('title').isLength({ min: 5 }),
@@ -12,13 +12,15 @@ const postBody = [
 ];
 
 const searchParams = [
-    query('topic').isIn(topics).optional()
+    query('topic').isIn(topics).optional(),
+    query('status').isIn(['live', 'expired']).optional(),
+    query('highestInterest').isBoolean().optional()
 ];
 
-router.get(     '/',    validation(searchParams),   PostController.getPosts     );
-router.get(     '/:id',                             PostController.getPost      );
-router.post(    '/',    validation(postBody),       PostController.createPost   );
-router.patch(   '/:id', validation(postBody),       PostController.updatePost   );
-router.delete(  '/:id',                             PostController.deletePost   );
+router.get('/', validation(searchParams), PostController.getPosts);
+router.get('/:id', PostController.getPost);
+router.post('/', validation(postBody), PostController.createPost);
+router.patch('/:id', validation(postBody), PostController.updatePost);
+router.delete('/:id', PostController.deletePost);
 
 module.exports = router;

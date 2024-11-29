@@ -6,148 +6,31 @@ const Post = require('../models/Post');
 const { actions } = require('../types');
 const { validationResult } = require('express-validator');
 const { mongoose } = require('mongoose');
+const ActivityController = require('../controllers/ActivityController');
 
 const postBody = [
-    body('message').isLength({ min: 10 }).optional(),
-    body("action").isIn(actions),
-    // header('accessToken').isString().isLength({ min: 10 })
+    body('message').isLength({ min: 10 }).optional()
 ];
 
-router.get('/', (req, res) => {
-    res.send('Hello World');
-});
-
-router.post("/:postId/like", postBody, async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-        return res.status(400).json({ errors: result.array() });
+router.use("/:postId", async (req, res, next) => {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
     }
-    const dislikesFoundResult = await Post.find({ "dislikes.users": req.user.id }).exec();
-    const dislikesFound = dislikesFoundResult.length > 0;
-    if (dislikesFound) {
-        Post.findByIdAndUpdate(req.params.postId, {
-            $pull: {
-                "dislikes.users": req.user.id
-            }
-        }).then((post) => {
-            res.json(post);
-        }).catch((err) => {
-            res.status(500).json({ error: err.message });
-        });
-    }
-
-    Post.findByIdAndUpdate(req.params.postId, {
-        $addToSet: {
-            "likes.users": req.user.id
-        }
-    }).then((post) => {
-        res.json(post);
-    }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    });
+    next();
 });
 
-router.post("/:postId/dislike", postBody,async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-        return res.status(400).json({ errors: result.array() });
-    }
-    const likesFoundResult = await Post.find({ "likes.users": req.user.id }).exec();
-    const likesFound = likesFoundResult.length > 0;
-    if (likesFound) {
-        Post.findByIdAndUpdate(req.params.postId, {
-            $pull: {
-                "likes.users": req.user.id
-            }
-        }).then((post) => {
-            res.json(post);
-        }).catch((err) => {
-            res.status(500).json({ error: err.message });
-        });
-    }
+router.use("/:postId", ActivityController.postLiveCheck);
 
-    Post.findByIdAndUpdate(req.params.postId, {
-        $addToSet: {
-            "dislikes.users": req.user.id
-        }
-    }).then((post) => {
-        res.json(post);
-    }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    });
-});
+router.post("/:postId/like", ActivityController.createLike);
+router.delete("/:postId/like", ActivityController.deleteLike);
 
-router.post("/:postId/comment", postBody, (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-        return res.status(400).json({ errors: result.array() });
-    }
+router.post("/:postId/dislike", ActivityController.createDislike);
+router.delete("/:postId/dislike", ActivityController.deleteDislike);
 
-    Post.findByIdAndUpdate(req.params.postId, {
-        $push: {
-            comments: {
-                user: {
-                    id: req.user.id,
-                    username: req.user.username
-                },
-                textBody: req.body.textBody
-            }
-        }
-    }, { new: true }).then((post) => {
-        res.json(post);
-    }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    });
-});
+router.post("/:postId/comment", postBody, ActivityController.createComment);
+router.delete("/:postId/comment/:id", ActivityController.deleteComment);
+router.patch("/:postId/comment/:id", postBody, ActivityController.updateComment);
 
-router.delete("/:postId/comment/", (req, res) => {
-    Post.findByIdAndUpdate(req.params.postId, {
-        $pull: {
-            comments: {
-                user: {
-                    id: req.user.id,
-                    username: req.user.username
-                }
-            }
-        }
-    }, { new: true }).then((post) => {
-        res.json(post);
-    }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    });
-});
-
-router.post('/:postId/:activity', (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-        return res.status(400).json({ errors: result.array() });
-    }
-
-    Post.findByIdAndUpdate(req.params.postId, {
-        $push: {
-            activity: {
-                user: {
-                    id: req.user.id,
-                    username: req.user.username
-                },
-                action: req.params.activity,
-                textBody: req.body.textBody
-            }
-        }
-    }, { new: true }).then((post) => {
-        res.json(post);
-    }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    });
-
-});
-
-router.patch('/', (req, res) => {
-    res.send('Hello World');
-});
-
-router.delete('/:id', (req, res) => {
-    res.send('Hello World');
-});
 
 module.exports = router;

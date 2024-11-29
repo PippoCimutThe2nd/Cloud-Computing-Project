@@ -23,21 +23,23 @@ const PostSchema = new mongoose.Schema({
     },
     comments: [
         {
-            id: {
-                type: Number,
-                auto: true,
-            },
             user: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
+                id: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User'
+                },
+                username: String
             },
-            message: String,
+            message: {
+                type: String,
+                required: true
+            },
             registreatedAt: {
                 type: Date,
                 default: Date.now
             }
         }
-    ], 
+    ],
     registreatedAt: {
         type: Date,
         default: Date.now
