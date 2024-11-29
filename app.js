@@ -3,6 +3,7 @@ const express = require('express');
 const dotevn = require('dotenv');
 const indexRouter = require('./routes/index');
 const activityRouter = require('./routes/activity');
+const ObjectId = mongoose.Types.ObjectId;
 dotevn.config();
 
 const app = express();
@@ -19,7 +20,7 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
     req.user = {
-        id: new mongoose.Types.ObjectId("67464b0f90bb9c12b59b5b51"),
+        id: new ObjectId("67464b0f90bb9c12b59b5b51"),
         username: 'testuser'
     };
     next();

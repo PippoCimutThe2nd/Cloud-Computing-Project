@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { actions, topics } = require('../types')
+const { topics } = require('../types')
 
 const PostSchema = new mongoose.Schema({
     title: String,
@@ -21,12 +21,13 @@ const PostSchema = new mongoose.Schema({
         }]
     },
     comments: [{
-        count : {
-            type: Number,
-            default: 0
-        },
         data: [
             {
+                _id : {
+                    type: mongoose.Schema.Types.ObjectId,
+                    default: () => new mongoose.Types.ObjectId(),
+                    unique: true
+                },
                 user: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'User'
