@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { topics } = require('../types')
+const { topics } = require('../types');
+const { type } = require('express/lib/response');
 
 const PostSchema = new mongoose.Schema({
     title: String,
@@ -8,45 +9,42 @@ const PostSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    likes : {
+    likes: {
         users: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
         }]
     },
-    dislikes : {
+    dislikes: {
         users: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
         }]
     },
-    comments: [{
-        data: [
-            {
-                _id : {
-                    type: mongoose.Schema.Types.ObjectId,
-                    default: () => new mongoose.Types.ObjectId(),
-                    unique: true
-                },
-                user: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User'
-                },
-                message: String,
-                registreatedAt: {
-                    type: Date,
-                    default: Date.now
-                }
+    comments: [
+        {
+            id: {
+                type: Number,
+                auto: true,
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            message: String,
+            registreatedAt: {
+                type: Date,
+                default: Date.now
             }
-        ]
-    }],
+        }
+    ], 
     registreatedAt: {
         type: Date,
         default: Date.now
     },
     topic: {
-        name: String,
-        enum: topics,
+        type: String,
+        enum: topics
     },
     message: String,
     expiresAt: {

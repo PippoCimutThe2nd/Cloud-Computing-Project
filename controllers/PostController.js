@@ -1,7 +1,7 @@
 const Post = require('../models/Post');
 
-exports.createPost = async (req, res) => {
-    Post.create({
+exports.createPost = async (req, res, next) => {
+    const result = await Post.create({
         title: req.body.title,
         topic: req.body.topic,
         message: req.body.message,
@@ -10,11 +10,12 @@ exports.createPost = async (req, res) => {
             username: req.user.username
         },
         expiresAt: new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
-    }).then((post) => {
-        res.status(201).json(post);
+    }).then(()=>{
+        res.status(201).json({ message: "Post created" });
     }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    })
+        console.log(err);
+        res.status(500).json({ message: "Internal server Error" });
+    });
 }
 
 exports.getPosts = async (req, res) => {
