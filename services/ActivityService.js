@@ -48,7 +48,7 @@ exports.setPostToExpired = async function setPostToExpired(postId) {
 }
 
 exports.isPostLive = async function isPostLive(postId) {
-    return Post.findById(postId).then((post) => {
+    return await Post.findById(postId).then((post) => {
         if (!post) {
             return true;
         }
@@ -60,7 +60,6 @@ exports.isPostLive = async function isPostLive(postId) {
 
             return this.setPostToExpired(postId);
         }
-    }).then(() => {
         return false;
     })
 }
