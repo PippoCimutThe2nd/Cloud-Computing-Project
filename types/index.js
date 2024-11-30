@@ -4,3 +4,8 @@ module.exports.topics = [
     "sports",
     "tech"
 ]
+
+module.exports.postStatus = {
+    live: "live",
+    expired: "expired"
+}

@@ -1,14 +1,15 @@
 const Post = require('../models/Post');
 const { validationResult } = require('express-validator');
 const ActivityService = require('../services/ActivityService');
+const CommentAdapter = require('../adapters/Comment');
 
 exports.createLike = async (req, res) => {
-    const result = await  ActivityService.isThisMyPost(req.params.postId, req.user.id)
-    
+    const result = await ActivityService.isThisMyPost(req.params.postId, req.user.id)
+
     if (result) {
         return res.status(400).json({ error: 'You cannot like your own post' });
     }
-    
+
     const giveLikeResult = await ActivityService.giveLike(req.params.postId, req.user.id);
     const removeDislikeResult = await ActivityService.removeDislike(req.params.postId, req.user.id);
 
@@ -16,7 +17,7 @@ exports.createLike = async (req, res) => {
 };
 
 exports.deleteLike = async (req, res) => {
-    const result = await  ActivityService.isThisMyPost(req.params.postId, req.user.id)
+    const result = await ActivityService.isThisMyPost(req.params.postId, req.user.id)
     if (result) {
         return res.status(400).json({ error: 'You cannot remove like from your own post' });
     }
@@ -50,54 +51,50 @@ exports.deleteDislike = async (req, res) => {
 }
 
 exports.createComment = async (req, res) => {
-    const result = validationResult(req);
-    if (!result.isEmpty()) {
-        return res.status(400).json({ errors: result.array() });
+    const commentCreationResult = await ActivityService.createComment(req.params.postId, req.user.id, req.body.message);
+
+    return res.json({ message: "Comment created" });
+}
+
+exports.getComment = async (req, res) => {
+    const comment = await ActivityService.getComment(req.params.postId, req.params.id);
+    if (!comment) {
+        return res.status(404).json({ error: 'Comment not found' });
     }
 
-    Post.findByIdAndUpdate(req.params.postId, {
-        $push: {
-            comments: {
-                user: {
-                    id: req.user.id
-                },
-                message: req.body.message
-            }
-        }
-    }, { new: true }).then((post) => {
-        res.json(post);
-    }).catch((err) => {
-        res.status(500).json({ error: err.message });
-    });
+    res.json(CommentAdapter.fromDatabaseRecord(comment));
 }
 
 exports.deleteComment = async (req, res) => {
-    Post.findByIdAndUpdate({
-        _id: req.params.postId,
-        "comments._id": req.params.id
-    },
-        {
-            $pull: {
-                "comments": { _id: req.params.id }
-            }
-        }, { new: true }).then((post) => {
-            res.json(post);
-        })
+    const comment = await ActivityService.getComment(req.params.postId, req.params.id);
+    if (!comment) {
+        return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    if (comment.user.toString() !== req.user.id.toString()) {
+        return res.status(403).json({ error: 'You are not allowed to delete this comment' });
+    }
+
+    const deleteCommentResult = await ActivityService.deleteComment(req.params.postId, req.params.id);
+
+    return res.json({ message: 'Comment deleted' });
 }
 
 exports.updateComment = async (req, res) => {
-    Post.findOneAndUpdate({
-        _id: req.params.postId,
-        "comments._id": req.params.id
-    }, {
-        $set: {
-            "comments.$.message": req.body.message
-        }
-    }, { new: true }).then((post) => {
-        res.json(post);
-    })
-}
+    const comment = await ActivityService.getComment(req.params.postId, req.params.id);
+    if (!comment) {
+        return res.status(404).json({ error: 'Comment not found' });
+    }
+    
+    if (comment.user.toString() !== req.user.id.toString()) {
+        return res.status(403).json({ error: 'You are not allowed to update this comment' });
+    }
 
+    const updateCommentResult = await ActivityService.updateComment(req.params.postId, req.params.id, req.body.message);
+
+    return res.json({ message: 'Comment updated' });
+}
+    
 exports.postLiveCheck = async (req, res, next) => {
     console.log(req.params.postId)
     const result = await ActivityService.isPostLive(req.params.postId)

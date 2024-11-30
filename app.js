@@ -1,11 +1,9 @@
 const mongoose = require('mongoose');
 const express = require('express');
-const dotevn = require('dotenv');
 const indexRouter = require('./routes/index');
-const activityRouter = require('./routes/activity');
 const authRouter = require('./routes/auth');
-const auth = require('./utils/auth');
-dotevn.config();
+const onlyAuthorizedUsers = require('./utils/auth');
+require('dotenv').config();
 
 const app = express();
 const MONGO_URL = process.env.MONGO_URL;
@@ -19,25 +17,21 @@ app.use((req, res, next) => {
     next();
 });
 
+//These routes could be a separate API
 app.use('/auth', authRouter);
-app.use(auth);
 
-app.use('/', indexRouter);
-app.use('/activity', activityRouter);
+app.use(onlyAuthorizedUsers);
+app.use('/api', indexRouter);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
+
     if (err instanceof SyntaxError) {
         return res.status(400).json({ error: 'Invalid JSON' });
     }
 
-    if (err.message) {
-
-        if (err.status) {
-            return res.status(err.status).json({ error: err.message });
-        }
-
-        return res.status(400).json({ error: err.message });
+    if (err.status) {
+        return res.status(err.status).json({ error: err.message });
     }
 
     res.status(500).json({ error: 'Internal server error' });

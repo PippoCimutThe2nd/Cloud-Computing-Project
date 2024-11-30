@@ -1,19 +1,15 @@
 const Post = require('../models/Post');
 const PostAdapter = require('../adapters/Post');
 
-exports.createPost = async (userId, {
-    title,
-    topic,
-    message
-}) => {
+exports.createPost = async (userId, post) => {
     return await Post.create({
-        title: title,
-        topic: topic,
-        message: message,
+        title: post.title,
+        topic: post.topic,
+        message: post.message,
         owner: {
             id: userId
         },
-        expiresAt: new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
+        expiresAt: new Date(new Date().getTime() + 5 * 60 * 1000)
     })
 
 }
@@ -61,6 +57,7 @@ exports.getPosts = async (
     return posts.map(PostAdapter.fromDatabaseRecord);
 
 }
+
 exports.getPost = async (id) => {
     const post = await Post.findById(id)
     if (!post) {
@@ -72,12 +69,7 @@ exports.getPost = async (id) => {
     return post;
 }
 
-exports.updatePost = async (id, {
-    title = null,
-    topic = null,
-    message = null
-}) => {
-
+exports.updatePost = async (id, partialPost) => {
     const post = await Post.findById(id);
     if (!post) {
         const error = new Error('Post not found');
@@ -85,12 +77,11 @@ exports.updatePost = async (id, {
         throw error;
     }
 
-    post.title = title || post.title;
-    post.topic = topic || post.topic;
-    post.message = message || post.message;
+    post.title = partialPost.title || post.title;
+    post.topic = partialPost.topic || post.topic;
+    post.message = partialPost.message || post.message;
 
     return post.save();
-
 }
 
 exports.deletePost = async (req, res) => {

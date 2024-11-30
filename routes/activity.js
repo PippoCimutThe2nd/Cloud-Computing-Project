@@ -1,17 +1,15 @@
 const express = require('express');
 const router = express.Router();
-
-const { body, header } = require('express-validator');
+const { body } = require('express-validator');
 const Post = require('../models/Post');
-const { actions } = require('../types');
-const { validationResult } = require('express-validator');
-const { mongoose } = require('mongoose');
 const ActivityController = require('../controllers/ActivityController');
+const postLiveCheck = require('../utils/postLiveCheckMiddleware').postLiveCheck;
 
 const postBody = [
     body('message').isLength({ min: 10 }).optional()
 ];
 
+//Common checks for all routes
 router.use("/:postId", async (req, res, next) => {
     const post = await Post.findById(req.params.postId);
     if (!post) {
@@ -20,8 +18,9 @@ router.use("/:postId", async (req, res, next) => {
     next();
 });
 
-router.use("/:postId", ActivityController.postLiveCheck);
+router.use("/:postId", postLiveCheck);
 
+//Routes
 router.post("/:postId/like", ActivityController.createLike);
 router.delete("/:postId/like", ActivityController.deleteLike);
 

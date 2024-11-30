@@ -1,4 +1,7 @@
 const Post = require('../models/Post');
+const postStatus = require('../types').postStatus;
+const CommentAdapter = require('../adapters/Comment');
+
 exports.giveLike = async function giveLike(postId, userId) {
     return Post.findByIdAndUpdate(postId, {
         $addToSet: {
@@ -41,26 +44,62 @@ exports.isThisMyPost = async function isThisMyPost(postId, userId) {
     })
 }
 
-exports.setPostToExpired = async function setPostToExpired(postId) {
-    return Post.findByIdAndUpdate(postId, {
-        status: 'expired'
-    })
-}
-
 exports.isPostLive = async function isPostLive(postId) {
     return await Post.findById(postId).then((post) => {
         if (!post) {
+            const error = new Error('Post not found');
+            error.status = 404;
+            throw error;
+        }
+
+        const adaptedPost = PostAdapter.fromDatabaseRecord(post);
+
+        if (adaptedPost.status === postStatus.live) {
             return true;
         }
-        if (post.status === 'live') {
 
-            if (post.expiresAt > new Date()) {
-                return true;
-            }
-
-            return this.setPostToExpired(postId);
-        }
         return false;
     })
+}
+
+exports.createComment = async function createComment(userId, postId, message) {
+    return await Post.findByIdAndUpdate(postId, {
+        $push: {
+            comments: {
+                user: {
+                    id: userId
+                },
+                message: message
+            }
+        }
+    }, { new: true })
+}
+
+exports.getComment = async function getComment(postId, commentId) {
+    const comment = await Post.findById(postId).comments.id(commentId);
+    return CommentAdapter.fromDatabaseRecord(comment);
+}
+
+exports.deleteComment = async function deleteComment (userId, postId, commentId) {
+    return await Post.findByIdAndUpdate({
+        _id: postId,
+        "comments._id": commentId
+    },
+        {
+            $pull: {
+                "comments": { _id: commentId }
+            }
+        }, { new: true })
+}
+
+exports.updateComment = async function updateComment(userId, postId, commentId, message) {
+    return await Post.findOneAndUpdate({
+        _id: postId,
+        "comments._id": commentId
+    }, {
+        $set: {
+            "comments.$.message": message
+        }
+    }, { new: true })
 }
 

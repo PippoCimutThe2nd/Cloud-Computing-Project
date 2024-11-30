@@ -24,11 +24,8 @@ const PostSchema = new mongoose.Schema({
     comments: [
         {
             user: {
-                id: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User'
-                },
-                username: String
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
             },
             message: {
                 type: String,
@@ -53,17 +50,9 @@ const PostSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    status: {
-        type: String,
-        enum: ['live', 'expired'],
-        default: 'live'
-    },
     owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-        },
-        username: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 });
 
