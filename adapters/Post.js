@@ -12,9 +12,6 @@ exports.fromDatabaseRecord = (record) => {
         message: record.message,
         expiresAt: record.expiresAt,
         status: record.expiresAt > new Date() ? postStatus.live : postStatus.expired,
-        owner: {
-            id: record.owner._id? record.owner._id : record.owner.id ? record.owner.id : null,
-            username: record.owner.username? record.owner.username : null
-        }
+        owner: record.owner
     }
 }

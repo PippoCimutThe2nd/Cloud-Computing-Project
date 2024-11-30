@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { body } = require('express-validator');
+const { body } = require('express-validator')
+
 const Post = require('../models/Post');
 const ActivityController = require('../controllers/ActivityController');
 const postLiveCheck = require('../utils/postLiveCheckMiddleware').postLiveCheck;
@@ -21,15 +22,14 @@ router.use("/:postId", async (req, res, next) => {
 router.use("/:postId", postLiveCheck);
 
 //Routes
+router.post("/:postId/comment", postBody, ActivityController.createComment);
+router.delete("/:postId/comment/:id", ActivityController.deleteComment);
+router.patch("/:postId/comment/:id", postBody, ActivityController.updateComment);
+
 router.post("/:postId/like", ActivityController.createLike);
 router.delete("/:postId/like", ActivityController.deleteLike);
 
 router.post("/:postId/dislike", ActivityController.createDislike);
 router.delete("/:postId/dislike", ActivityController.deleteDislike);
-
-router.post("/:postId/comment", postBody, ActivityController.createComment);
-router.delete("/:postId/comment/:id", ActivityController.deleteComment);
-router.patch("/:postId/comment/:id", postBody, ActivityController.updateComment);
-
 
 module.exports = router;

@@ -7,9 +7,9 @@ exports.createPost = async (req, res, next) => {
 }
 
 exports.getPosts = async (req, res) => {
-    const filterTopic = req.query.topic ? { topic: req.query.topic } : null;
-    const filterStatus = req.query.status ? { status: req.query.status } : null;
-    const filterHighestInterests = req.query.highestInterest ? { topic: req.query.highestInterest } : null;
+    const filterTopic = req.query.topic ? req.query.topic  : null;
+    const filterStatus = req.query.status ? req.query.status  : null;
+    const filterHighestInterests = req.query.highestInterest ? req.query.highestInterest : null;
 
     const posts = await PostService.getPosts(filterTopic, filterStatus, filterHighestInterests)
 

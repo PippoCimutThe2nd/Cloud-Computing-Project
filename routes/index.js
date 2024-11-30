@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
+
 const PostController = require('../controllers/PostController');
 const topics = require('../types').topics;
 const { validation } = require('../utils/validationMiddleware');

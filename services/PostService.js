@@ -1,14 +1,13 @@
 const Post = require('../models/Post');
 const PostAdapter = require('../adapters/Post');
+const postStatuses = require('../types').postStatus;
 
 exports.createPost = async (userId, post) => {
     return await Post.create({
         title: post.title,
         topic: post.topic,
         message: post.message,
-        owner: {
-            id: userId
-        },
+        owner: userId,
         expiresAt: new Date(new Date().getTime() + 5 * 60 * 1000)
     })
 
@@ -20,7 +19,13 @@ exports.getPosts = async (
     highestInterest = null
 ) => {
     const filterTopic = topic ? { topic: topic } : null;
-    const filterStatus = postStatus ? { status: postStatus } : null;
+
+    const filterStatus = postStatus ? (postStatus === postStatuses.live ? {
+        expiresAt: { $gt: new Date() }
+    } : {
+        expiresAt: { $lt: new Date() }
+    }) : null;
+
     const filterHighestInterests = highestInterest ? { topic: highestInterest } : null;
 
     const pipeline = [
@@ -52,7 +57,7 @@ exports.getPosts = async (
         pipeline.push({ $limit: 1 });
     }
 
-    const posts = Post.aggregate(pipeline)
+    const posts = await Post.aggregate(pipeline)
 
     return posts.map(PostAdapter.fromDatabaseRecord);
 

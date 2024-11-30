@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const postStatus = require('../types').postStatus;
 const CommentAdapter = require('../adapters/Comment');
+const PostAdapter = require('../adapters/Post');
 
 exports.giveLike = async function giveLike(postId, userId) {
     return Post.findByIdAndUpdate(postId, {

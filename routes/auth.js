@@ -1,12 +1,11 @@
 const express = require('express')
 const router = express.Router()
-
-const User = require('../models/User')
-
 const bcryptjs = require('bcryptjs')
 const jsonwebtoken = require('jsonwebtoken')
-const { validation } = require('../utils/validationMiddleware')
+const User = require('../models/User')
 const { body } = require('express-validator')
+
+const { validation } = require('../utils/validationMiddleware')
 
 const registerBody = [
     body('username').isLength({ min: 3, max: 256 }),
